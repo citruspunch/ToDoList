@@ -81,11 +81,11 @@ fun TodoApp() {
         EditTaskDialog(
             task = task,
             onDismiss = { editingTask = null },
-            onUpdate = { updatedText, updatedImage ->
+            onUpdate = { updatedText ->
                 if (updatedText.isNotBlank()) {
                     tasks = tasks.map {
                         if (it.id == task.id) {
-                            it.copy(text = updatedText, imageUri = updatedImage)
+                            it.copy(text = updatedText, imageUri = selectedImageUri)
                         } else it
                     }
                     editingTask = null
@@ -130,7 +130,7 @@ fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
 }
 
 @Composable
-fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String, String?) -> Unit, onPickImage: () -> Unit) {
+fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit, onPickImage: () -> Unit) {
     var editedText by remember { mutableStateOf(task.text) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -143,13 +143,13 @@ fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String, String?
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onPickImage) {
+                Button(onClick = onPickImage ) {
                     Text("Attach Image")
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onUpdate(editedText, task.imageUri) }) {
+            TextButton(onClick = { onUpdate(editedText) }) {
                 Text("Save")
             }
         },
