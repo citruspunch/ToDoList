@@ -131,3 +131,40 @@ fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
     }
 }
 
+@Composable
+fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit, onPickImage: () -> Unit) {
+    var editedText by remember { mutableStateOf(task.text) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Task") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = editedText,
+                    onValueChange = { editedText = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = onPickImage) {
+                    Text("Attach Image")
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onUpdate(editedText) }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+data class Task(
+    val id: Long = System.currentTimeMillis(),
+    val text: String,
+    val imageUri: String? = null
+)
