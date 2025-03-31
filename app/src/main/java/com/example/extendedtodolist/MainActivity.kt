@@ -1,12 +1,10 @@
 package com.example.extendedtodolist
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,9 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,14 +33,12 @@ fun TodoApp() {
     var tasks by remember { mutableStateOf(listOf<Task>()) }
     var taskText by remember { mutableStateOf("") }
     var editingTask by remember { mutableStateOf<Task?>(null) }
-    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        editingTask?.let { task ->
-            uri?.let {
-                tasks = tasks.map {
-                    if (it.id == task.id) it.copy(imageUri = it.toString()) else it
-                }
-            }
-        }
+    var selectedImageUri by remember { mutableStateOf<String?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri.toString()
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -54,10 +49,15 @@ fun TodoApp() {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { imagePickerLauncher.launch("image/*") } ) {
+            Text("Attach Image")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = {
                 if (taskText.isNotBlank()) {
-                    tasks = tasks + Task(text = taskText)
+                    val currentTask = Task(text = taskText, imageUri = selectedImageUri)
+                    tasks = tasks + currentTask
                     taskText = ""
                 }
             },
@@ -70,7 +70,7 @@ fun TodoApp() {
             items(tasks) { task ->
                 TaskItem(
                     task = task,
-                    onEdit = { editingTask = it },
+                    onEdit = { selectedTask -> editingTask = selectedTask },
                     onDelete = { tasks = tasks.filterNot { t -> t.id == it.id } }
                 )
             }
@@ -81,15 +81,17 @@ fun TodoApp() {
         EditTaskDialog(
             task = task,
             onDismiss = { editingTask = null },
-            onUpdate = { updatedText ->
+            onUpdate = { updatedText, updatedImage ->
                 if (updatedText.isNotBlank()) {
                     tasks = tasks.map {
-                        if (it.id == task.id) it.copy(text = updatedText) else it
+                        if (it.id == task.id) {
+                            it.copy(text = updatedText, imageUri = updatedImage)
+                        } else it
                     }
                     editingTask = null
                 }
             },
-            onPickImage = { imagePicker.launch("image/*") }
+            onPickImage = { imagePickerLauncher.launch("image/*") }
         )
     }
 }
@@ -109,15 +111,11 @@ fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = task.text, style = MaterialTheme.typography.bodyLarge)
-                task.imageUri?.let {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = it),
+                task.imageUri?.let { uri ->
+                    AsyncImage(
+                        model = uri,
                         contentDescription = null,
-                        modifier = Modifier
-                            .height(120.dp)
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier.size(64.dp),
                     )
                 }
             }
@@ -132,7 +130,7 @@ fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
 }
 
 @Composable
-fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit, onPickImage: () -> Unit) {
+fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String, String?) -> Unit, onPickImage: () -> Unit) {
     var editedText by remember { mutableStateOf(task.text) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -151,7 +149,7 @@ fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit
             }
         },
         confirmButton = {
-            TextButton(onClick = { onUpdate(editedText) }) {
+            TextButton(onClick = { onUpdate(editedText, task.imageUri) }) {
                 Text("Save")
             }
         },
