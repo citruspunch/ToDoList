@@ -93,3 +93,41 @@ fun TodoApp() {
         )
     }
 }
+@Composable
+fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = task.text, style = MaterialTheme.typography.bodyLarge)
+                task.imageUri?.let {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = it),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .height(120.dp)
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+            IconButton(onClick = { onEdit(task) }) {
+                Text("Edit")
+            }
+            IconButton(onClick = { onDelete(task) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
+            }
+        }
+    }
+}
+
