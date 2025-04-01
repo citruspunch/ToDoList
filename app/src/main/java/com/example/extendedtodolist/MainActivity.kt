@@ -1,5 +1,6 @@
 package com.example.extendedtodolist
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,21 +10,71 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                TodoApp()
+                MainScaffold()
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScaffold() {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                colors = topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text("Top app bar")
+                }
+            )
+        },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    text = "Bottom app bar",
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { }) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
+        }
+
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            TodoApp()
         }
     }
 }
@@ -49,7 +100,7 @@ fun TodoApp() {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = { imagePickerLauncher.launch("image/*") } ) {
+        Button(onClick = { imagePickerLauncher.launch("image/*") }) {
             Text("Attach Image")
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -95,6 +146,7 @@ fun TodoApp() {
         )
     }
 }
+
 @Composable
 fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
     Card(
@@ -130,7 +182,12 @@ fun TaskItem(task: Task, onEdit: (Task) -> Unit, onDelete: (Task) -> Unit) {
 }
 
 @Composable
-fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit, onPickImage: () -> Unit) {
+fun EditTaskDialog(
+    task: Task,
+    onDismiss: () -> Unit,
+    onUpdate: (String) -> Unit,
+    onPickImage: () -> Unit
+) {
     var editedText by remember { mutableStateOf(task.text) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -143,7 +200,7 @@ fun EditTaskDialog(task: Task, onDismiss: () -> Unit, onUpdate: (String) -> Unit
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onPickImage ) {
+                Button(onClick = onPickImage) {
                     Text("Attach Image")
                 }
             }
