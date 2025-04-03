@@ -22,7 +22,8 @@ This is a simple ToDo list application built using Jetpack Compose. It allows us
     - Navigate to the cloned directory and select it.
 
 3.  **Build the project:**
-    - Android Studio should automatically start building the project. If not, you can manually trigger a build by selecting "Build" -> "Make Project".
+    - Android Studio should automatically start building the project. If not, you can manually trigger a build by selecting:  
+       **Build** → **Assemble Project**.
 
 4.  **Run the app:**
     - Connect an Android device or start an emulator.
